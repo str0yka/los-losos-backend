@@ -14,11 +14,13 @@ class CartController {
         const product = await prisma.productInCart.update({
           where: { id: candidate.id },
           data: { count: candidate.count + 1 },
+          select: { product: true, count: true },
         });
         return res.json(product);
       }
       const product = await prisma.productInCart.create({
         data: { cartId, productId, count: 1 },
+        select: { product: true, count: true },
       });
       return res.json(product);
     } catch (err) {
@@ -33,18 +35,20 @@ class CartController {
       const productId = id;
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
+        include: { product: true },
       });
       if (candidate && candidate.count > 1) {
         const product = await prisma.productInCart.update({
           where: { id: candidate.id },
           data: { count: candidate.count - 1 },
+          select: { product: true, count: true },
         });
         return res.json(product);
       }
       const product = await prisma.productInCart.deleteMany({
         where: { productId, cartId },
       });
-      return res.json(product);
+      return res.json({ product: candidate.product, count: product.count - 1 });
     } catch (err) {
       next(ApiError.unexpected("Не удалось удалить товар из корзины"));
     }
