@@ -35,7 +35,9 @@ class ProductController {
 
   // NEED TO ADD CATEGORY SORT
   async getAll(req, res) {
-    const data = await prisma.product.findMany();
+    const data = await prisma.category.findMany({
+      select: { product: true, title: true },
+    });
     return res.json(data);
   }
 
