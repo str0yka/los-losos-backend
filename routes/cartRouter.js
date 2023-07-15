@@ -1,11 +1,10 @@
 import express from "express";
-import authMiddleware from "../middlewares/authMiddleware.js";
+import cartMiddleware from "../middlewares/cartMiddleware.js";
 import cartController from "../controllers/cartController.js";
 const router = express();
 
-router.post("/", authMiddleware, cartController.addToCard);
-// router.post("/", userController.login);
-router.delete("/", authMiddleware, cartController.removeFromCart);
-router.get("/", authMiddleware, cartController.getAll);
+router.post("/", cartMiddleware, cartController.addToCard);
+router.delete("/", cartMiddleware, cartController.removeFromCart);
+router.get("/", cartController.getAll);
 
 export default router;

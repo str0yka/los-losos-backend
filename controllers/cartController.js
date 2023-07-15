@@ -1,28 +1,36 @@
-import ApiError from "../error/ApiError.js";
 import { prisma } from "../index.js";
+import jwt from "jsonwebtoken";
+
+import ApiError from "../error/ApiError.js";
+import { generateJwt } from "../utils/generateJwt.js";
 
 class CartController {
   async addToCard(req, res, next) {
     try {
-      const { cartId } = req.user;
+      const { isAuthorize, cartId } = req.user;
       const { id } = req.body;
       const productId = id;
+
+      const token = isAuthorize ? null : generateJwt(cartId);
+
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
       });
+
       if (candidate) {
-        const product = await prisma.productInCart.update({
+        var { product, count } = await prisma.productInCart.update({
           where: { id: candidate.id },
           data: { count: candidate.count + 1 },
           select: { product: true, count: true },
         });
-        return res.json(product);
+      } else {
+        var { product, count } = await prisma.productInCart.create({
+          data: { cartId, productId, count: 1 },
+          select: { product: true, count: true },
+        });
       }
-      const product = await prisma.productInCart.create({
-        data: { cartId, productId, count: 1 },
-        select: { product: true, count: true },
-      });
-      return res.json(product);
+
+      return res.json({ isAuthorize, token, product, count });
     } catch (err) {
       next(ApiError.unexpected(err.message));
     }
@@ -30,25 +38,35 @@ class CartController {
 
   async removeFromCart(req, res, next) {
     try {
-      const { cartId } = req.user;
+      const { isAuthorize, cartId } = req.user;
       const { id } = req.body;
       const productId = id;
+
+      const token = isAuthorize ? null : generateJwt(cartId);
+
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
-        include: { product: true },
+        select: { product: true, count: true, id: true },
       });
+
       if (candidate && candidate.count > 1) {
-        const product = await prisma.productInCart.update({
+        var { product } = await prisma.productInCart.update({
           where: { id: candidate.id },
           data: { count: candidate.count - 1 },
           select: { product: true, count: true },
         });
-        return res.json(product);
+      } else {
+        var product = await prisma.productInCart.deleteMany({
+          where: { cartId, productId },
+        });
       }
-      const product = await prisma.productInCart.deleteMany({
-        where: { productId, cartId },
+
+      return res.json({
+        isAuthorize,
+        token,
+        product: candidate.product,
+        count: candidate.count - 1,
       });
-      return res.json({ product: candidate.product, count: product.count - 1 });
     } catch (err) {
       next(ApiError.unexpected("Не удалось удалить товар из корзины"));
     }
@@ -56,17 +74,24 @@ class CartController {
 
   async getAll(req, res, next) {
     try {
-      const { cartId } = req.user;
-      const { productInCart } = await prisma.cart.findFirst({
-        where: { productInCart: { some: { cartId } } },
+      const { cartId } = jwt.decode(req.headers.authorization.split(" ")[1]);
+
+      console.log(cartId);
+
+      if (!cartId) return next(ApiError.badRequest("Корзины не существует"));
+
+      const { productsInCart } = await prisma.cart.findFirst({
+        where: { id: cartId },
         include: {
-          productInCart: {
+          productsInCart: {
             select: { product: true, count: true },
           },
         },
       });
 
-      res.json(productInCart);
+      console.log(productsInCart);
+
+      res.json(productsInCart);
     } catch (err) {
       next(ApiError.badRequest("Корзина пуста"));
     }

@@ -1,19 +1,8 @@
 import ApiError from "../error/ApiError.js";
 import { prisma } from "../index.js";
 import bcrypt from "bcrypt";
+import { generateJwt } from "../utils/generateJwt.js";
 import jwt from "jsonwebtoken";
-
-const generateJwt = (id, cartId, role) => {
-  return jwt.sign(
-    {
-      id,
-      cartId,
-      role,
-    },
-    process.env.SECRET_KEY,
-    { expiresIn: "7d" }
-  );
-};
 
 class UserController {
   async registration(req, res, next) {
@@ -40,17 +29,35 @@ class UserController {
   }
 
   async login(req, res, next) {
-    const { phone, password } = req.body;
-    const user = await prisma.user.findFirst({ where: { phone } });
-    if (!user) {
-      return next(ApiError.badRequest("Неверно указана почта или пароль"));
+    let { phone, code } = req.body;
+    let cartId;
+    if (req.headers.authorization) {
+      cartId = jwt.decode(req.headers.authorization.split(" ")[1]);
     }
-    const comparePassword = bcrypt.compareSync(password, user.password);
-    if (!comparePassword) {
-      return next(ApiError.badRequest("Неверно указана почта или пароль"));
+
+    console.log(phone, code, cartId);
+
+    if (String(code) !== process.env.SECRET_CODE) {
+      return next(ApiError.badRequest("Неверный код"));
     }
-    const token = generateJwt(user.id, user.cartId, user.role);
-    return res.json({ token });
+
+    const candidate = await prisma.user.findFirst({ where: { phone } });
+
+    if (candidate) {
+      const accessToken = generateJwt(candidate.cartId);
+
+      return res.json({ ...candidate, accessToken });
+    }
+
+    if (!cartId) {
+      const { id } = await prisma.cart.create({ select: { id: true } });
+      cartId = id;
+    }
+
+    const accessToken = generateJwt(cartId);
+
+    const user = await prisma.user.create({ data: { phone, cartId } });
+    res.json({ ...user, accessToken });
   }
 
   async checkAuth(req, res, next) {

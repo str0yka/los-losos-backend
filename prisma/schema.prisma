@@ -11,9 +11,9 @@ datasource db {
 }
 
 model Category {
-  id      Int       @id @default(autoincrement())
-  title   String
-  product Product[]
+  id       Int       @id @default(autoincrement())
+  title    String
+  products Product[]
 }
 
 model Product {
@@ -29,9 +29,9 @@ model Product {
 }
 
 model Cart {
-  id            Int             @id @default(autoincrement())
-  user          User?
-  productInCart ProductInCart[]
+  id             Int             @id @default(autoincrement())
+  user           User?
+  productsInCart ProductInCart[]
 }
 
 model ProductInCart {
