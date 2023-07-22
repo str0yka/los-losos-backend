@@ -35,8 +35,6 @@ class UserController {
       cartId = jwt.decode(req.headers.authorization.split(" ")[1]);
     }
 
-    console.log(phone, code, cartId);
-
     if (String(code) !== process.env.SECRET_CODE) {
       return next(ApiError.badRequest("Неверный код"));
     }

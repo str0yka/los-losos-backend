@@ -24,6 +24,7 @@ class CartController {
           select: { product: true, count: true },
         });
       } else {
+        console.log(cartId, productId);
         var { product, count } = await prisma.productInCart.create({
           data: { cartId, productId, count: 1 },
           select: { product: true, count: true },
@@ -39,8 +40,7 @@ class CartController {
   async removeFromCart(req, res, next) {
     try {
       const { isAuthorize, cartId } = req.user;
-      const { id } = req.body;
-      const productId = id;
+      const productId = req.body.id;
 
       const token = isAuthorize ? null : generateJwt(cartId);
 
@@ -72,11 +72,39 @@ class CartController {
     }
   }
 
+  async removeAllFromCart(req, res, next) {
+    try {
+      const { cartId } = req.user;
+      console.log(cartId);
+      await prisma.productInCart.deleteMany({ where: { cartId } });
+      return res.json({ success: true });
+    } catch (err) {
+      console.log(err);
+      return res.json({ success: false });
+    }
+  }
+
+  async removeItemFromCart(req, res, next) {
+    try {
+      const { cartId } = req.user;
+      const productId = req.body.id;
+
+      const product = await prisma.productInCart.deleteMany({
+        where: { cartId, productId },
+      });
+
+      console.log(product, cartId, productId);
+
+      return res.json({ success: true });
+    } catch (err) {
+      console.log(err);
+      return res.json({ success: false });
+    }
+  }
+
   async getAll(req, res, next) {
     try {
       const { cartId } = jwt.decode(req.headers.authorization.split(" ")[1]);
-
-      console.log(cartId);
 
       if (!cartId) return next(ApiError.badRequest("Корзины не существует"));
 
@@ -88,8 +116,6 @@ class CartController {
           },
         },
       });
-
-      console.log(productsInCart);
 
       res.json(productsInCart);
     } catch (err) {
