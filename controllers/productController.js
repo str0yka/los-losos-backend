@@ -7,30 +7,35 @@ import { __dirname } from "../index.js";
 
 class ProductController {
   async create(req, res, next) {
-    let { title, foods, price, weight, categoryId } = req.body;
-    const { img } = req.files;
-    foods = JSON.parse(foods);
+    try {
+      let { title, foods, price, weight, categoryId } = req.body;
+      const { img } = req.files;
+      foods = JSON.parse(foods);
 
-    if (!title) return next(ApiError.badRequest("Не указано название"));
-    if (!img) return next(ApiError.badRequest("Не выбрана картинка"));
-    if (!foods || !Array.isArray(foods))
-      return next(ApiError.badRequest("Не указаны продукты"));
-    if (!price) return next(ApiError.badRequest("Не указана цена"));
-    if (!weight) return next(ApiError.badRequest("Не указан вес"));
-    if (!categoryId) return next(ApiError.badRequest("Не указана категория"));
+      if (!title) return next(ApiError.badRequest("Не указано название"));
+      if (!img) return next(ApiError.badRequest("Не выбрана картинка"));
+      if (!foods || !Array.isArray(foods))
+        return next(ApiError.badRequest("Не указаны продукты"));
+      if (!price) return next(ApiError.badRequest("Не указана цена"));
+      if (!weight) return next(ApiError.badRequest("Не указан вес"));
+      if (!categoryId) return next(ApiError.badRequest("Не указана категория"));
 
-    const fileName = uuidv4() + ".jpg";
-    img.mv(path.resolve(__dirname, "static", fileName));
+      const fileName = uuidv4() + ".jpg";
+      img.mv(path.resolve(__dirname, "static", fileName));
 
-    foods = foods.join(", ");
-    price = Number(price);
-    weight = Number(weight);
-    categoryId = Number(categoryId);
+      foods = foods.join(", ");
+      price = Number(price);
+      weight = Number(weight);
+      categoryId = Number(categoryId);
 
-    const product = await prisma.product.create({
-      data: { title, img: fileName, foods, price, weight, categoryId },
-    });
-    return res.status(200).json(product);
+      const product = await prisma.product.create({
+        data: { title, img: fileName, foods, price, weight, categoryId },
+      });
+      return res.status(200).json(product);
+    } catch (error) {
+      console.log(error);
+      next(ApiError.badRequest("Не удалось создать продукт"));
+    }
   }
 
   async getAll(req, res) {

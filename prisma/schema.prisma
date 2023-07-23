@@ -53,6 +53,20 @@ model User {
   cartId   Int     @unique
 }
 
+model Promocode {
+  id    Int      @id @default(autoincrement())
+  code  String   @unique
+  name  String?
+  text  String?
+  type  Discount
+  value Int
+}
+
+enum Discount {
+  fix
+  percentage
+}
+
 enum Role {
   admin
   user
