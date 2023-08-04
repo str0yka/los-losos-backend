@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../index.js";
 
 export default async function (req, res, next) {
   if (req.method === "OPTIONS") {
@@ -12,9 +11,7 @@ export default async function (req, res, next) {
     }
 
     if (!token || token === "null") {
-      const cart = await prisma.cart.create({ data: {} });
-      req.user = { isAuthorize: false, cartId: cart.id };
-      return next();
+      throw new Error("Отсутствует корзина");
     }
 
     const decoded = jwt.decode(token);

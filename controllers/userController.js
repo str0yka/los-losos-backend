@@ -42,7 +42,7 @@ class UserController {
     const candidate = await prisma.user.findFirst({ where: { phone } });
 
     if (candidate) {
-      const accessToken = generateJwt(candidate.cartId);
+      const accessToken = generateJwt(candidate.id, candidate.cartId);
 
       return res.json({ ...candidate, accessToken });
     }
@@ -52,9 +52,9 @@ class UserController {
       cartId = id;
     }
 
-    const accessToken = generateJwt(cartId);
-
     const user = await prisma.user.create({ data: { phone, cartId } });
+
+    const accessToken = generateJwt(user.id, user.cartId);
     res.json({ ...user, accessToken });
   }
 

@@ -1,10 +1,11 @@
 import express from "express";
 import userController from "../controllers/userController.js";
 import authMiddleware from "../middlewares/cartMiddleware.js";
+import cartMiddleware from "../middlewares/cartMiddleware.js";
 const router = express();
 
 router.post("/register", userController.registration);
-router.post("/login", userController.login);
+router.post("/login", cartMiddleware, userController.login);
 router.get("/", authMiddleware, userController.checkAuth);
 
 export default router;

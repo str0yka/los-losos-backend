@@ -23,24 +23,38 @@ model Product {
   foods         String
   price         Int
   weight        Int
-  category      Category?       @relation(fields: [categoryId], references: [id])
-  categoryId    Int?
+  category      Category        @relation(fields: [categoryId], references: [id])
+  categoryId    Int
   ProductInCart ProductInCart[]
 }
 
 model Cart {
   id             Int             @id @default(autoincrement())
   user           User?
+  userId         Int?
   productsInCart ProductInCart[]
+  promocode      Promocode?      @relation(fields: [promocodeId], references: [id])
+  promocodeId    Int?
+  Order          Order?          @relation(fields: [orderId], references: [id])
+  orderId        Int?
+}
+
+model Order {
+  id            Int            @id @default(autoincrement())
+  cart          Cart[]
+  status        DeliveryStatus
+  whenDelivered DateTime?
 }
 
 model ProductInCart {
-  id        Int      @id @default(autoincrement())
-  product   Product? @relation(fields: [productId], references: [id])
-  productId Int
+  id        Int     @id @default(autoincrement())
   count     Int
-  Cart      Cart?    @relation(fields: [cartId], references: [id])
-  cartId    Int?
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+
+  @@unique([productId, cartId])
 }
 
 model User {
@@ -49,22 +63,41 @@ model User {
   phone    String? @unique
   addres   String?
   role     Role    @default(user)
-  cart     Cart?   @relation(fields: [cartId], references: [id])
+  cart     Cart    @relation(fields: [cartId], references: [id])
   cartId   Int     @unique
 }
 
 model Promocode {
-  id    Int      @id @default(autoincrement())
-  code  String   @unique
-  name  String?
-  text  String?
-  type  Discount
-  value Int
+  id           Int          @id @default(autoincrement())
+  code         String       @unique
+  name         String?
+  text         String?
+  discountType DiscountType
+  value        Int
+  expireType   ExpireType
+  date         DateTime?
+  count        Int?
+  counter      Int?
+  cart         Cart[]
 }
 
-enum Discount {
+enum DeliveryStatus {
+  accepted
+  inWork
+  enRoute
+  delivered
+  canceled
+}
+
+enum DiscountType {
   fix
   percentage
+}
+
+enum ExpireType {
+  count
+  date
+  infinity
 }
 
 enum Role {

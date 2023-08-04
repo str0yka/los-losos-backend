@@ -11,7 +11,7 @@ class CartController {
       const { id } = req.body;
       const productId = id;
 
-      const token = isAuthorize ? null : generateJwt(cartId);
+      const token = isAuthorize ? null : generateJwt(null, cartId);
 
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
@@ -24,7 +24,6 @@ class CartController {
           select: { product: true, count: true },
         });
       } else {
-        console.log(cartId, productId);
         var { product, count } = await prisma.productInCart.create({
           data: { cartId, productId, count: 1 },
           select: { product: true, count: true },
@@ -42,7 +41,7 @@ class CartController {
       const { isAuthorize, cartId } = req.user;
       const productId = req.body.id;
 
-      const token = isAuthorize ? null : generateJwt(cartId);
+      const token = isAuthorize ? null : generateJwt(null, cartId);
 
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
@@ -108,16 +107,17 @@ class CartController {
 
       if (!cartId) return next(ApiError.badRequest("Корзины не существует"));
 
-      const { productsInCart } = await prisma.cart.findFirst({
+      const { productsInCart, promocode } = await prisma.cart.findFirst({
         where: { id: cartId },
         include: {
           productsInCart: {
             select: { product: true, count: true },
           },
+          promocode: true,
         },
       });
 
-      res.json(productsInCart);
+      res.json({ productsInCart, promocode });
     } catch (err) {
       next(ApiError.badRequest("Корзина пуста"));
     }
