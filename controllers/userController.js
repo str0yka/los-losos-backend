@@ -29,33 +29,38 @@ class UserController {
   }
 
   async login(req, res, next) {
-    let { phone, code } = req.body;
-    let cartId;
-    if (req.headers.authorization) {
-      cartId = jwt.decode(req.headers.authorization.split(" ")[1]);
+    try {
+      let { phone, code } = req.body;
+      let cartId;
+      if (req.headers.authorization) {
+        cartId = jwt.decode(req.headers.authorization.split(" ")[1]);
+      }
+
+      if (String(code) !== process.env.SECRET_CODE) {
+        return next(ApiError.badRequest("Неверный код"));
+      }
+
+      const candidate = await prisma.user.findFirst({ where: { phone } });
+
+      if (candidate) {
+        const accessToken = generateJwt(candidate.id, candidate.cartId);
+
+        return res.json({ ...candidate, accessToken });
+      }
+
+      if (!cartId) {
+        const { id } = await prisma.cart.create({ select: { id: true } });
+        cartId = id;
+      }
+
+      const user = await prisma.user.create({ data: { phone, cartId } });
+
+      const accessToken = generateJwt(user.id, user.cartId);
+      res.json({ ...user, accessToken });
+    } catch (error) {
+      console.log(error);
+      next(ApiError.unexpected("Непредвиденная ошибка при авторизации"));
     }
-
-    if (String(code) !== process.env.SECRET_CODE) {
-      return next(ApiError.badRequest("Неверный код"));
-    }
-
-    const candidate = await prisma.user.findFirst({ where: { phone } });
-
-    if (candidate) {
-      const accessToken = generateJwt(candidate.id, candidate.cartId);
-
-      return res.json({ ...candidate, accessToken });
-    }
-
-    if (!cartId) {
-      const { id } = await prisma.cart.create({ select: { id: true } });
-      cartId = id;
-    }
-
-    const user = await prisma.user.create({ data: { phone, cartId } });
-
-    const accessToken = generateJwt(user.id, user.cartId);
-    res.json({ ...user, accessToken });
   }
 
   async checkAuth(req, res, next) {

@@ -13,17 +13,22 @@ export default async function (req, res, next) {
 
     if (!token || token === "null") {
       const cart = await prisma.cart.create({ data: {} });
-      req.user = { isAuthorize: false, cartId: cart.id };
+      req.user = { userId: null, cartId: cart.id };
       return next();
     }
 
     const decoded = jwt.decode(token);
 
     if (decoded.userId) {
-      req.user = { isAuthorize: true, cartId: decoded.cartId };
-    } else {
-      req.user = { isAuthorize: false, cartId: decoded.cartId };
+      const { cartId } = await prisma.user.findFirst({
+        where: { id: decoded.userId },
+      });
+
+      req.user = { userId: decoded.userId, cartId };
+      return next();
     }
+
+    req.user = decoded;
 
     return next();
   } catch (err) {

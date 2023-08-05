@@ -35,15 +35,25 @@ model Cart {
   productsInCart ProductInCart[]
   promocode      Promocode?      @relation(fields: [promocodeId], references: [id])
   promocodeId    Int?
-  Order          Order?          @relation(fields: [orderId], references: [id])
+  Order          Order?
   orderId        Int?
 }
 
 model Order {
   id            Int            @id @default(autoincrement())
-  cart          Cart[]
   status        DeliveryStatus
   whenDelivered DateTime?
+  cart          Cart           @relation(fields: [cartId], references: [id])
+  cartId        Int            @unique
+  orders        Orders?        @relation(fields: [ordersId], references: [id])
+  ordersId      Int?
+}
+
+model Orders {
+  id     Int     @id @default(autoincrement())
+  orders Order[]
+  user   User    @relation(fields: [userId], references: [id])
+  userId Int
 }
 
 model ProductInCart {
@@ -58,13 +68,14 @@ model ProductInCart {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
+  id       Int      @id @default(autoincrement())
   password String?
-  phone    String? @unique
+  phone    String?  @unique
   addres   String?
-  role     Role    @default(user)
-  cart     Cart    @relation(fields: [cartId], references: [id])
-  cartId   Int     @unique
+  role     Role     @default(user)
+  cart     Cart     @relation(fields: [cartId], references: [id])
+  cartId   Int      @unique
+  orders   Orders[]
 }
 
 model Promocode {

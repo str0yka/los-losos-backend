@@ -89,9 +89,16 @@ class PromocodeController {
           where: { id: cartId },
         });
 
+        if (candidate.promocodeId) {
+          await prisma.promocode.update({
+            where: { id: candidate.promocodeId },
+            data: { counter: { decrement: 1 } },
+          });
+        }
+
         promocode = await prisma.promocode.update({
           where: { id: promocode.id },
-          data: { counter: ++promocode.counter },
+          data: { counter: { increment: 1 } },
         });
       }
 

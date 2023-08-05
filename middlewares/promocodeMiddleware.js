@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { prisma } from "../index.js";
 
 export default async function (req, res, next) {
   if (req.method === "OPTIONS") {
@@ -17,10 +18,15 @@ export default async function (req, res, next) {
     const decoded = jwt.decode(token);
 
     if (decoded.userId) {
-      req.user = { isAuthorize: true, cartId: decoded.cartId };
-    } else {
-      req.user = { isAuthorize: false, cartId: decoded.cartId };
+      const { cartId } = await prisma.user.findFirst({
+        where: { id: decoded.userId },
+      });
+
+      req.user = { userId: decoded.userId, cartId };
+      return next();
     }
+
+    req.user = decoded;
 
     return next();
   } catch (err) {
