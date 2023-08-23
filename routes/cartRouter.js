@@ -9,5 +9,6 @@ router.delete("/", cartMiddleware, cartController.removeFromCart);
 router.delete("/one", cartMiddleware, cartController.removeItemFromCart);
 router.delete("/all", cartMiddleware, cartController.removeAllFromCart);
 router.post("/confirm", cartMiddleware, cartController.confirm);
+router.get("/orders", cartMiddleware, cartController.getOrders);
 
 export default router;

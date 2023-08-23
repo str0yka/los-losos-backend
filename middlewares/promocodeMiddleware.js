@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../index.js";
+import ApiError from "../error/ApiError.js";
 
 export default async function (req, res, next) {
   if (req.method === "OPTIONS") {
@@ -30,6 +31,6 @@ export default async function (req, res, next) {
 
     return next();
   } catch (err) {
-    return res.status(500).json({ err });
+    return res.json(ApiError.unexpected(err?.message ?? 'Ошибка при взаимодействии с промокодом'))
   }
 }

@@ -8,6 +8,8 @@ import { __dirname } from "../index.js";
 class ProductController {
   async create(req, res, next) {
     try {
+      console.log('body', req.body)
+      console.log('files', req.files)
       let { title, foods, price, weight, categoryId } = req.body;
       const { img } = req.files;
       foods = JSON.parse(foods);
@@ -39,34 +41,47 @@ class ProductController {
   }
 
   async getAll(req, res) {
-    const data = await prisma.category.findMany({
-      select: { products: true, title: true },
-    });
-    return res.json(data);
+    try {
+      const data = await prisma.category.findMany({
+        select: { products: true, title: true },
+      });
+      return res.json(data);
+    } catch (error) {
+      next(ApiError.unexpected('Ошибка при получение всех товаров'))
+    }
   }
 
   async getOne(req, res) {
-    let { id } = req.params;
-    id = Number(id);
-    const data = await prisma.product.findFirst({ where: { id } });
-    return res.json(data);
+    try {
+      let { id } = req.params;
+      id = Number(id);
+      const data = await prisma.product.findFirst({ where: { id } });
+      return res.json(data);
+    } catch (error) {
+      next(ApiError.unexpected('Ошибка при получение товара'))
+    }
   }
 
   async delete(req, res, next) {
-    const { id } = req.body;
+    try {
+      const { id } = req.body;
 
-    if (!id) return next(ApiError.badRequest("Не выбрана категория"));
+      if (!id) return next(ApiError.badRequest("Не выбрана категория"));
 
-    const { img } = await prisma.product.findFirst({
-      where: { id },
-      select: { img: true },
-    });
-    const product = await prisma.product.delete({ where: { id } });
-    fs.unlink(`${__dirname}/static/${img}`, (err) => {
-      if (err) throw err;
-      console.log("Файл удален");
-    });
-    return res.json(product);
+      const { img } = await prisma.product.findFirst({
+        where: { id },
+        select: { img: true },
+      });
+      const product = await prisma.product.delete({ where: { id } });
+      fs.unlink(`${__dirname}/static/${img}`, (err) => {
+        if (err) throw err;
+        console.log("Файл удален");
+      });
+      return res.json(product);
+    } catch (error) {
+      console.log(error)
+      next(ApiError.unexpected('Не удалось удалить продукт'))
+    }
   }
 }
 

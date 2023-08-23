@@ -9,8 +9,7 @@ class CartController {
   async addToCard(req, res, next) {
     try {
       const { userId, cartId } = req.user;
-      const { id } = req.body;
-      const productId = id;
+      const { productId } = req.body;
 
       const token = userId ? null : generateJwt(null, cartId);
 
@@ -40,7 +39,7 @@ class CartController {
   async removeFromCart(req, res, next) {
     try {
       const { userId, cartId } = req.user;
-      const productId = req.body.id;
+      const { productId } = req.body;
 
       const token = userId ? null : generateJwt(null, cartId);
 
@@ -78,14 +77,14 @@ class CartController {
       await prisma.productInCart.deleteMany({ where: { cartId } });
       return res.json({ success: true });
     } catch (err) {
-      return res.json({ success: false });
+      return next(ApiError.unexpected('Ошибка при удаление товаров из корзины'));
     }
   }
 
   async removeItemFromCart(req, res, next) {
     try {
       const { cartId } = req.user;
-      const productId = req.body.id;
+      const { productId } = req.body;
 
       const product = await prisma.productInCart.deleteMany({
         where: { cartId, productId },
@@ -93,15 +92,13 @@ class CartController {
 
       return res.json({ success: true });
     } catch (err) {
-      return res.json({ success: false });
+      return next(ApiError.unexpected('Ошибка при удаление товаров из корзины'));
     }
   }
 
   async getAll(req, res, next) {
     try {
       const { userId, cartId } = req.user;
-
-      console.log(req.user);
 
       if (!cartId) return next(ApiError.badRequest("Корзины не существует"));
 
@@ -156,28 +153,15 @@ class CartController {
         return next(ApiError.badRequest("Корзина пуста"));
       }
 
-      const newOrder = await prisma.order.create({
-        data: { cartId, status: "accepted" },
+      await prisma.order.create({
+        data: { userId, cartId, status: "accepted" },
       });
       const newCart = await prisma.cart.create({});
 
-      const user = await prisma.user.update({
+      await prisma.user.update({
         where: { id: userId },
         data: { cartId: newCart.id },
       });
-
-      if (user.ordersId) {
-        await prisma.order.update({
-          where: { id: newOrder.id },
-          data: { ordersId },
-        });
-      } else {
-        const ordersHistory = await prisma.orders.create({ data: { userId } });
-        await prisma.order.update({
-          where: { id: newOrder.id },
-          data: { ordersId: ordersHistory.id },
-        });
-      }
 
       const formData = [
         `#заказ №${cartId}`,
@@ -251,6 +235,43 @@ class CartController {
     } catch (err) {
       console.log(err);
       next(ApiError.badRequest("Ошибка при оформление заказа"));
+    }
+  }
+
+  async getOrders(req, res, next) {
+    try {
+      const { userId } = req.user;
+
+      if (!userId) {
+        return next(ApiError.badRequest("Пользователя не существует"));
+      }
+
+      const { orders } = await prisma.user.findFirst({
+        where: { id: userId },
+        select: {
+          orders: {
+            select: {
+              status: true,
+              cart: {
+                select: {
+                  id: true,
+                  productsInCart: {
+                    select: {
+                      product: { select: { title: true } },
+                      count: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return res.json(orders);
+    } catch (err) {
+      console.log(err);
+      next(ApiError.badRequest("Ошибка при получение заказов"));
     }
   }
 }

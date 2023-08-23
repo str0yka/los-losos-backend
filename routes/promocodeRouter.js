@@ -5,6 +5,7 @@ import promocodeMiddleware from "../middlewares/promocodeMiddleware.js";
 
 const router = express();
 
+router.get("/", PromocodeController.getAll);
 router.post("/", PromocodeController.create);
 router.delete("/", PromocodeController.delete);
 router.post("/apply", promocodeMiddleware, PromocodeController.apply);

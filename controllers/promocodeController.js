@@ -68,8 +68,8 @@ class PromocodeController {
   async apply(req, res, next) {
     try {
       const { code } = req.body;
-      const { cartId } = req.user;
-      if (!code) return next(ApiError.badRequest("Укажите промокод"));
+      const { userId, cartId } = req.user;
+      if (!code || !userId) return next(ApiError.badRequest("Не указан промокод или пользователь неавторизован"));
 
       let promocode = await prisma.promocode.findFirst({ where: { code } });
 
@@ -104,7 +104,7 @@ class PromocodeController {
 
       if (
         promocode.expireType === "date" &&
-        Date.now() > Date.parse(promocode.date) / 1000
+        Date.now() > Date.parse(promocode.date)
       ) {
         await prisma.promocode.delete({ where: { id: promocode.id } });
         return next(
@@ -126,22 +126,38 @@ class PromocodeController {
 
   async cancel(req, res, next) {
     try {
-      const { id } = req.body;
-      const { cartId } = req.user;
+      const { userId, cartId } = req.user;
 
-      if (!id || !cartId) {
-        return next(ApiError.badRequest("Отсутствует корзина или промокод"));
+      if (!cartId || !userId) {
+        return next(ApiError.badRequest("Ошибка авторизации"));
       }
+
+      const { promocodeId } = await prisma.cart.findFirst({
+        where: { id: cartId }
+      });
+
+      await prisma.promocode.update({
+        where: { id: promocodeId },
+        data: { counter: { decrement: 1 } }
+      })
 
       await prisma.cart.update({
         where: { id: cartId },
-        data: { promocodeId: null },
-      });
+        data: { promocodeId: null }
+      })
 
       return res.json({ success: true });
     } catch (error) {
-      console.log(error);
       next(ApiError.unexpected("Неизвестная ошибка проверки промокода."));
+    }
+  }
+
+  async getAll(req, res, next) {
+    try {
+      const promocodes = await prisma.promocode.findMany()
+      res.json(promocodes)
+    } catch (error) {
+      next(ApiError.unexpected('Незвестная ошибка при получение промокодов.'))
     }
   }
 }
