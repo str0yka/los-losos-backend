@@ -22,8 +22,22 @@ CREATE TABLE `Product` (
 -- CreateTable
 CREATE TABLE `Cart` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
+    `promocodeId` INTEGER NULL,
+    `orderId` INTEGER NULL,
 
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Order` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `status` ENUM('accepted', 'inWork', 'enRoute', 'delivered', 'canceled') NOT NULL,
+    `whenDelivered` DATETIME(3) NULL,
+    `cartId` INTEGER NOT NULL,
+    `userId` INTEGER NULL,
+
+    UNIQUE INDEX `Order_cartId_key`(`cartId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -58,8 +72,12 @@ CREATE TABLE `Promocode` (
     `code` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NULL,
     `text` VARCHAR(191) NULL,
-    `type` ENUM('fix', 'percentage') NOT NULL,
+    `discountType` ENUM('fix', 'percentage') NOT NULL,
     `value` INTEGER NOT NULL,
+    `expireType` ENUM('count', 'date', 'infinity') NOT NULL,
+    `date` DATETIME(3) NULL,
+    `count` INTEGER NULL,
+    `counter` INTEGER NULL,
 
     UNIQUE INDEX `Promocode_code_key`(`code`),
     PRIMARY KEY (`id`)
@@ -67,6 +85,15 @@ CREATE TABLE `Promocode` (
 
 -- AddForeignKey
 ALTER TABLE `Product` ADD CONSTRAINT `Product_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Cart` ADD CONSTRAINT `Cart_promocodeId_fkey` FOREIGN KEY (`promocodeId`) REFERENCES `Promocode`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Order` ADD CONSTRAINT `Order_cartId_fkey` FOREIGN KEY (`cartId`) REFERENCES `Cart`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Order` ADD CONSTRAINT `Order_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ProductInCart` ADD CONSTRAINT `ProductInCart_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
