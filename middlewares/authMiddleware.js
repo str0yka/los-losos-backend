@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+
+import ApiError from "../error/ApiError.js";
 import { prisma } from "../index.js";
 
 export default async function (req, res, next) {
@@ -32,6 +34,6 @@ export default async function (req, res, next) {
 
     return next();
   } catch (err) {
-    return res.status(500).json({ err });
+    return res.json(ApiError.unexpected('Ошибка при проверке авторизации'));
   }
 }

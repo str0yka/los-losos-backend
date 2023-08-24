@@ -1,7 +1,5 @@
-import jwt from "jsonwebtoken";
-
-import { prisma } from "../index.js";
 import ApiError from "../error/ApiError.js";
+import { prisma } from "../index.js";
 import { generateJwt } from "../utils/generateJwt.js";
 import { sendOrder } from "../telegram/orders.js";
 
@@ -11,7 +9,7 @@ class CartController {
       const { userId, cartId } = req.user;
       const { productId } = req.body;
 
-      const token = userId ? null : generateJwt(null, cartId);
+      const token = userId ? null : generateJwt(null, null, cartId);
 
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
@@ -41,7 +39,7 @@ class CartController {
       const { userId, cartId } = req.user;
       const { productId } = req.body;
 
-      const token = userId ? null : generateJwt(null, cartId);
+      const token = userId ? null : generateJwt(null, null, cartId);
 
       const candidate = await prisma.productInCart.findFirst({
         where: { productId, cartId },
@@ -98,7 +96,7 @@ class CartController {
 
   async getAll(req, res, next) {
     try {
-      const { userId, cartId } = req.user;
+      const { cartId } = req.user;
 
       if (!cartId) return next(ApiError.badRequest("Корзины не существует"));
 
@@ -114,6 +112,7 @@ class CartController {
 
       res.json({ productsInCart, promocode });
     } catch (err) {
+      console.log(err)
       next(ApiError.badRequest("Корзина пуста"));
     }
   }
@@ -233,7 +232,7 @@ class CartController {
         newCartId: newCart.id,
       });
     } catch (err) {
-      console.log(err);
+      console.log('cart/confirm', err);
       next(ApiError.badRequest("Ошибка при оформление заказа"));
     }
   }
@@ -270,7 +269,7 @@ class CartController {
 
       return res.json(orders);
     } catch (err) {
-      console.log(err);
+      console.log('cart/getorders', err);
       next(ApiError.badRequest("Ошибка при получение заказов"));
     }
   }

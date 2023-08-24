@@ -46,7 +46,7 @@ class PromocodeController {
 
       return res.json(promocode);
     } catch (error) {
-      console.log(error);
+      console.log('promocode/create', error);
       next(ApiError.unexpected("Неизвестная ошибка при создании промокода."));
     }
   }
@@ -60,7 +60,7 @@ class PromocodeController {
 
       return res.json({ success: true });
     } catch (error) {
-      console.log(error);
+      console.log('promocode/delete', error);
       next(ApiError.unexpected("Неизвестная ошибка при удалении промокода."));
     }
   }
@@ -119,7 +119,7 @@ class PromocodeController {
 
       return res.json(promocode);
     } catch (error) {
-      console.log(error);
+      console.log('promocode/apply', error);
       next(ApiError.unexpected("Неизвестная ошибка проверки промокода."));
     }
   }

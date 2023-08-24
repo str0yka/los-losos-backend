@@ -1,8 +1,9 @@
+import path from "path";
+import fs from "fs";
+
 import { prisma } from "../index.js";
 import ApiError from "../error/ApiError.js";
 import { v4 as uuidv4 } from "uuid";
-import path from "path";
-import * as fs from "fs";
 import { __dirname } from "../index.js";
 
 class ProductController {
@@ -35,7 +36,7 @@ class ProductController {
       });
       return res.status(200).json(product);
     } catch (error) {
-      console.log(error);
+      console.log('product/create', error);
       next(ApiError.badRequest("Не удалось создать продукт"));
     }
   }
@@ -79,7 +80,7 @@ class ProductController {
       });
       return res.json(product);
     } catch (error) {
-      console.log(error)
+      console.log('product/delete', error)
       next(ApiError.unexpected('Не удалось удалить продукт'))
     }
   }

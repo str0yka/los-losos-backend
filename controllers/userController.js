@@ -1,8 +1,9 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 import ApiError from "../error/ApiError.js";
 import { prisma } from "../index.js";
-import bcrypt from "bcrypt";
 import { generateJwt } from "../utils/generateJwt.js";
-import jwt from "jsonwebtoken";
 
 class UserController {
   async registration(req, res, next) {
@@ -24,7 +25,7 @@ class UserController {
     const user = await prisma.user.create({
       data: { phone, password: hashPasswrod, role, cartId: cart.id },
     });
-    const token = generateJwt(user.id, cart.id, role);
+    const token = generateJwt(user.id, user.role, cart.id, role);
     return res.json({ token });
   }
 
@@ -43,7 +44,7 @@ class UserController {
       const candidate = await prisma.user.findFirst({ where: { phone } });
 
       if (candidate) {
-        const accessToken = generateJwt(candidate.id, candidate.cartId);
+        const accessToken = generateJwt(candidate.id, candidate.role, candidate.cartId);
 
         return res.json({ ...candidate, accessToken });
       }
@@ -55,16 +56,16 @@ class UserController {
 
       const user = await prisma.user.create({ data: { phone, cartId } });
 
-      const accessToken = generateJwt(user.id, user.cartId);
+      const accessToken = generateJwt(user.id, user.role, user.cartId);
       res.json({ ...user, accessToken });
     } catch (error) {
-      console.log(error);
+      console.log('user', error);
       next(ApiError.unexpected("Непредвиденная ошибка при авторизации"));
     }
   }
 
   async checkAuth(req, res, next) {
-    const token = generateJwt(req.user.id, req.user.cartId, req.user.role);
+    const token = generateJwt(req.user.id, req.user.role, req.user.cartId);
     res.json({ token });
   }
 }

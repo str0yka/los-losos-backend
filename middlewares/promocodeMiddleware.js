@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+
 import { prisma } from "../index.js";
 import ApiError from "../error/ApiError.js";
 

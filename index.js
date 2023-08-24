@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-import express from "express";
 import path from "path";
 import cors from "cors";
-import fileUpload from "express-fileupload";
 import { fileURLToPath } from "url";
+import express from "express";
+import fileUpload from "express-fileupload";
+import { PrismaClient } from "@prisma/client";
+
 import errorHandlingMiddleware from "./middlewares/ErrorHandlingMiddleware.js";
 import router from "./routes/index.js";
 
@@ -17,7 +18,6 @@ app.use(express.json());
 app.use(express.static(path.resolve(__dirname, "static")));
 app.use(fileUpload({}));
 app.use("/api", router);
-
 app.use(errorHandlingMiddleware);
 
 const start = async () => {
@@ -27,7 +27,7 @@ const start = async () => {
       console.log(`Server started on port ${process.env.PORT}`);
     });
   } catch (err) {
-    console.log(err);
+    console.log('start', err);
   }
 };
 start();

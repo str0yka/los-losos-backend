@@ -1,5 +1,4 @@
 import TelegramApi from "node-telegram-bot-api";
-import { sendOrder } from "./orders.js";
 
 export const bot = new TelegramApi(process.env.BOT_TOKEN, { polling: true });
 

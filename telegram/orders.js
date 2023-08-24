@@ -22,7 +22,7 @@ export const sendOrder = async (id, order) => {
       }),
     });
   } catch (error) {
-    console.log(error);
+    console.log('orders/sendMessage', error);
   }
 };
 
@@ -133,6 +133,6 @@ bot.on("callback_query", async (message) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    console.log('bot', error);
   }
 });
