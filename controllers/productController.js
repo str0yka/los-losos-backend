@@ -32,7 +32,14 @@ class ProductController {
       categoryId = Number(categoryId);
 
       const product = await prisma.product.create({
-        data: { title, img: fileName, foods, price, weight, categoryId },
+        data: {
+          title,
+          img: fileName,
+          foods,
+          price: Number(JSON.parse(price)),
+          weight: Number(JSON.parse(weight)),
+          categoryId: Number(JSON.parse(categoryId))
+        },
       });
       return res.status(200).json(product);
     } catch (error) {
