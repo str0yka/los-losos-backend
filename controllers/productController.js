@@ -47,7 +47,7 @@ class ProductController {
       next(ApiError.badRequest("Не удалось создать продукт"));
     }
   }
-
+  
   async getAll(req, res) {
     try {
       const data = await prisma.category.findMany({
