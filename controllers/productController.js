@@ -27,17 +27,17 @@ class ProductController {
       img.mv(path.resolve(__dirname, "static", fileName));
 
       foods = foods.join(", ");
-      price = Number(price);
-      weight = Number(weight);
-      categoryId = Number(categoryId);
+      price = Number(JSON.parse(price));
+      weight = Number(JSON.parse(weight));
+      categoryId = Number(JSON.parse(categoryId));
 
       const product = await prisma.product.create({
         data: {
           title,
           img: fileName,
           foods,
-          price: Number(JSON.parse(price)),
-          weight: Number(JSON.parse(weight)),
+          price,
+          weight,
           categoryId,
         },
       });
