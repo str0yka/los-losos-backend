@@ -38,7 +38,7 @@ class ProductController {
           foods,
           price: Number(JSON.parse(price)),
           weight: Number(JSON.parse(weight)),
-          categoryId: Number(JSON.parse(categoryId))
+          categoryId,
         },
       });
       return res.status(200).json(product);
@@ -47,7 +47,7 @@ class ProductController {
       next(ApiError.badRequest("Не удалось создать продукт"));
     }
   }
-  
+
   async getAll(req, res) {
     try {
       const data = await prisma.category.findMany({
