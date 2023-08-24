@@ -26,7 +26,7 @@ export default async function (req, res, next) {
         where: { id: decoded.userId },
       });
 
-      req.user = { userId: decoded.userId, cartId };
+      req.user = { userId: decoded.userId, role: decoded.role, cartId };
       return next();
     }
 
