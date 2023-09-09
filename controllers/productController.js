@@ -27,6 +27,7 @@ class ProductController {
       img.mv(path.resolve(__dirname, "static", fileName));
 
       foods = foods.join(", ");
+      title = JSON.parse(title);
       price = Number(JSON.parse(price));
       weight = Number(JSON.parse(weight));
       categoryId = Number(JSON.parse(categoryId));
